@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>รายงานผลงานบุคคล - ผศ.ดร.จิรพันธุ์ ศรีสมพันธุ์</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        :root {
+            --color-primary: #3BB489;
+            --color-secondary: #76C58C;
+            --color-teal: #26A69A;
+            --color-light-green: #AED581;
+            --color-yellow: #FFCA28;
+            --color-orange-light: #FF8A65;
+            --color-red-light: #EF5350;
+            --color-purple: #4A2C6D;
+            --color-red-dark: #D32F2F;
+            --color-orange-dark: #F57C00;
+            --color-yellow-dark: #FBC02D;
+            --color-blue: #0288D1;
+        }
+
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #f8fafc;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--color-primary); 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--color-teal); 
+        }
+
+        /* Splash Screen Styles */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.8s ease-in-out, visibility 0.8s;
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Background Decoration */
+        .bg-decoration {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+            opacity: 0.4;
+            pointer-events: none;
+        }
+        .blob {
+            position: absolute;
+            filter: blur(80px);
+            border-radius: 50%;
+            animation: float 10s infinite alternate;
+        }
+        .blob-1 { top: -10%; left: -10%; width: 400px; height: 400px; background: var(--color-teal); opacity: 0.2; }
+        .blob-2 { bottom: -10%; right: -10%; width: 500px; height: 500px; background: var(--color-yellow); opacity: 0.15; }
+        .blob-3 { top: 40%; left: 50%; width: 300px; height: 300px; background: var(--color-blue); opacity: 0.1; }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(30px, 50px) scale(1.1); }
+        }
+
+        /* Section Styling */
+        section {
+            padding-top: 5rem;
+            margin-bottom: 2rem;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        
+        section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.5);
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1);
+        }
+
+        .gradient-text {
+            background: linear-gradient(to right, var(--color-purple), var(--color-primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Loading Overlay for sections */
+        .section-loading {
+            position: absolute;
+            inset: 0;
+            background: rgba(255,255,255,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            border-radius: 1.5rem;
+        }
+        .mini-spinner {
+            width: 30px;
+            height: 30px;
+            border: 3px solid rgba(59, 180, 137, 0.2);
+            border-top-color: var(--color-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3BB489',
+                        secondary: '#76C58C',
+                        teal: '#26A69A',
+                        lightgreen: '#AED581',
+                        yellow: '#FFCA28',
+                        orangelight: '#FF8A65',
+                        redlight: '#EF5350',
+                        purple: '#4A2C6D',
+                        reddark: '#D32F2F',
+                        orangedark: '#F57C00',
+                        yellowdark: '#FBC02D',
+                        blue: '#0288D1',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="antialiased text-gray-800 relative">
+
+    <!-- Splash Screen -->
+    <div id="splash-screen">
+        <div class="spinner mb-6"></div>
+        <h1 class="text-white text-3xl font-bold mb-2">รายงานผลงานบุคคล</h1>
+        <p class="text-white text-lg opacity-90">ผศ.ดร.จิรพันธุ์ ศรีสมพันธุ์</p>
+        <p class="text-white text-sm mt-4 opacity-70">กำลังโหลดข้อมูลระบบ...</p>
+    </div>
+
+    <!-- Background Decoration -->
+    <div class="bg-decoration">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full bg-white/80 backdrop-blur-md shadow-sm z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <span class="text-xl font-bold gradient-text"><i class="fa-solid fa-graduation-cap mr-2"></i>Portfolio</span>
+                </div>
+                <div class="hidden md:flex items-center space-x-4">
+                    <a href="#profile" class="text-gray-600 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors">ประวัติ</a>
+                    <a href="#education" class="text-gray-600 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors">การศึกษา</a>
+                    <a href="#contact" class="text-gray-600 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors">สถานที่ติดต่อ</a>
+                    <a href="#works" class="text-gray-600 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors">ผลงาน</a>
+                    <a href="#academic" class="text-gray-600 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors">วิชาการ/วิจัย</a>
+                    <a href="#speaker" class="text-gray-600 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors">วิทยากร</a>
+                    <a href="#dashboard" class="bg-primary text-white hover:bg-teal px-4 py-2 rounded-full text-sm font-medium transition-colors shadow-md">Dashboard</a>
+                </div>
+                <!-- Mobile menu button -->
+                <div class="flex items-center md:hidden">
+                    <button type="button" onclick="toggleMobileMenu()" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-primary hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary" aria-expanded="false">
+                        <i class="fa-solid fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-100">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#profile" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50">ประวัติ</a>
+                <a href="#education" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50">การศึกษา</a>
+                <a href="#contact" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50">สถานที่ติดต่อ</a>
+                <a href="#works" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50">ผลงาน</a>
+                <a href="#academic" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50">วิชาการ/วิจัย</a>
+                <a href="#speaker" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50">วิทยากร</a>
+                <a href="#dashboard" class="block px-3 py-2 rounded-md text-base font-medium text-primary bg-primary/10">Dashboard</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-20">
+        
+        <!-- Profile Header -->
+        <section id="profile" class="pt-24">
+            <div class="card p-8 relative">
+                <div id="loading-profile" class="section-loading"><div class="mini-spinner"></div></div>
+                <div class="flex flex-col md:flex-row items-center md:items-start gap-8">
+                    <div class="w-48 h-48 rounded-full overflow-hidden border-4 border-white shadow-xl flex-shrink-0 relative bg-gray-100">
+                        <img src="logo.jpg" alt="ผศ.ดร.จิรพันธุ์ ศรีสมพันธุ์" class="w-full h-full object-cover object-top" onerror="this.src='https://placehold.co/400x400/eeeeee/999999?text=Profile'">
+                        <div class="absolute inset-0 ring-4 ring-primary ring-opacity-50 rounded-full"></div>
+                    </div>
+                    <div class="text-center md:text-left flex-1">
+                        <div class="inline-block px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-semibold mb-3 border border-primary/20">ผู้ช่วยศาสตราจารย์ ดร.</div>
+                        <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">จิรพันธุ์ ศรีสมพันธุ์</h1>
+                        <p class="text-xl text-gray-600 mb-4">Jiraphan Srisomphan, Ph.D.</p>
+                        
+                        <div class="bg-gray-50 rounded-xl p-4 border border-gray-100 mb-4">
+                            <h3 class="font-semibold text-gray-800 mb-2 border-b border-gray-200 pb-2">ตำแหน่งปัจจุบัน</h3>
+                            <ul class="space-y-2 text-sm text-gray-600">
+                                <li><i class="fa-solid fa-briefcase text-teal w-5"></i> อาจารย์ประจำภาควิชาคอมพิวเตอร์ศึกษา</li>
+                                <li><i class="fa-solid fa-building text-teal w-5"></i> คณะครุศาสตร์อุตสาหกรรม</li>
+                                <li><i class="fa-solid fa-university text-teal w-5"></i> มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ (KMUTNB)</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="flex flex-wrap justify-center md:justify-start gap-2 mt-4">
+                            <span class="badge bg-lightgreen/20 text-green-700 px-3 py-1 rounded-full text-xs border border-lightgreen"><i class="fa-solid fa-code mr-1"></i>Computer Education</span>
+                            <span class="badge bg-blue/10 text-blue-700 px-3 py-1 rounded-full text-xs border border-blue/30"><i class="fa-solid fa-brain mr-1"></i>e-Learning</span>
+                            <span class="badge bg-purple/10 text-purple-700 px-3 py-1 rounded-full text-xs border border-purple/30"><i class="fa-solid fa-gamepad mr-1"></i>Gamification</span>
+                            <span class="badge bg-orangedark/10 text-orange-700 px-3 py-1 rounded-full text-xs border border-orangedark/30"><i class="fa-solid fa-robot mr-1"></i>AI for Education</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
+            <!-- Left Column: Contact & Education -->
+            <div class="space-y-8 lg:col-span-1">
+                
+                <!-- 2. สถานที่ติดต่อ -->
+                <section id="contact" class="pt-20 lg:pt-0">
+                    <div class="card p-6 h-full relative">
+                        <div id="loading-contact" class="section-loading"><div class="mini-spinner"></div></div>
+                        <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-blue/10 text-blue flex items-center justify-center mr-3">
+                                <i class="fa-solid fa-address-card"></i>
+                            </div>
+                            สถานที่ติดต่อ
+                        </h2>
+                        
+                        <div class="space-y-4">
+                            <div class="flex items-start">
+                                <div class="mt-1 bg-gray-100 p-2 rounded-lg text-gray-500 mr-3"><i class="fa-solid fa-map-location-dot"></i></div>
+                                <div>
+                                    <p class="text-sm font-semibold text-gray-800">สถานที่ทำงาน</p>
+                                    <p class="text-sm text-gray-600 mt-1">ภาควิชาคอมพิวเตอร์ศึกษา ชั้น 2 คณะครุศาสตร์อุตสาหกรรม<br>มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="mt-1 bg-gray-100 p-2 rounded-lg text-gray-500 mr-3"><i class="fa-solid fa-house"></i></div>
+                                <div>
+                                    <p class="text-sm font-semibold text-gray-800">ที่อยู่</p>
+                                    <p class="text-sm text-gray-600 mt-1">1518 ถนนประชาราษฎร์ 1 แขวงวงศ์สว่าง เขตบางซื่อ กรุงเทพฯ 10800</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="mt-1 bg-gray-100 p-2 rounded-lg text-gray-500 mr-3"><i class="fa-solid fa-phone"></i></div>
+                                <div>
+                                    <p class="text-sm font-semibold text-gray-800">โทรศัพท์</p>
+                                    <p class="text-sm text-gray-600 mt-1">+66 2 555-2000 ต่อ 3240</p>
+                                    <p class="text-sm text-gray-600">มือถือ: 089-611-2452</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="mt-1 bg-gray-100 p-2 rounded-lg text-gray-500 mr-3"><i class="fa-solid fa-envelope"></i></div>
+                                <div>
+                                    <p class="text-sm font-semibold text-gray-800">อีเมล</p>
+                                    <a href="mailto:jiraphan.s@fte.kmutnb.ac.th" class="text-sm text-primary hover:underline mt-1 break-all">jiraphan.s@fte.kmutnb.ac.th</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 1. ประวัติการศึกษา -->
+                <section id="education" class="pt-20 lg:pt-0">
+                    <div class="card p-6 relative">
+                        <div id="loading-edu" class="section-loading"><div class="mini-spinner"></div></div>
+                        <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-yellow/20 text-yellowdark flex items-center justify-center mr-3">
+                                <i class="fa-solid fa-user-graduate"></i>
+                            </div>
+                            ประวัติการศึกษา
+                        </h2>
+                        
+                        <div class="relative border-l-2 border-gray-200 ml-4 space-y-8">
+                            <!-- Ph.D. -->
+                            <div class="relative pl-6">
+                                <div class="absolute w-4 h-4 bg-primary rounded-full -left-[9px] top-1 border-2 border-white shadow"></div>
+                                <span class="text-xs font-bold text-primary bg-primary/10 px-2 py-1 rounded-md mb-2 inline-block">พ.ศ. 2550</span>
+                                <h3 class="font-bold text-gray-800">ปริญญาปรัชญาดุษฎีบัณฑิต (ปร.ด.)</h3>
+                                <p class="text-sm text-gray-600 font-medium">สาขาวิชาคอมพิวเตอร์ศึกษา</p>
+                                <p class="text-sm text-gray-500 mt-1">มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ</p>
+                            </div>
+                            
+                            <!-- Master -->
+                            <div class="relative pl-6">
+                                <div class="absolute w-4 h-4 bg-teal rounded-full -left-[9px] top-1 border-2 border-white shadow"></div>
+                                <span class="text-xs font-bold text-teal bg-teal/10 px-2 py-1 rounded-md mb-2 inline-block">พ.ศ. 2543</span>
+                                <h3 class="font-bold text-gray-800">ปริญญาวิทยาศาสตรมหาบัณฑิต (วท.ม.)</h3>
+                                <p class="text-sm text-gray-600 font-medium">สาขาวิชาเทคโนโลยีสารสนเทศ</p>
+                                <p class="text-sm text-gray-500 mt-1">มหาวิทยาลัยเกษตรศาสตร์</p>
+                            </div>
+                            
+                            <!-- Bachelor -->
+                            <div class="relative pl-6">
+                                <div class="absolute w-4 h-4 bg-gray-400 rounded-full -left-[9px] top-1 border-2 border-white shadow"></div>
+                                <span class="text-xs font-bold text-gray-600 bg-gray-100 px-2 py-1 rounded-md mb-2 inline-block">พ.ศ. 2538</span>
+                                <h3 class="font-bold text-gray-800">ปริญญาบัณฑิต</h3>
+                                <p class="text-sm text-gray-600 font-medium">สาขาวิชาเทคโนโลยีคอมพิวเตอร์</p>
+                                <p class="text-sm text-gray-500 mt-1">สถาบันเทคโนโลยีพระจอมเกล้าพระนครเหนือ</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Right Column: Works & Academics -->
+            <div class="lg:col-span-2 space-y-8">
+                
+                <!-- 3. ผลงาน -->
+                <section id="works" class="pt-20 lg:pt-0">
+                    <div class="card p-6 relative">
+                        <div id="loading-works" class="section-loading"><div class="mini-spinner"></div></div>
+                        <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center border-b border-gray-100 pb-3">
+                            <div class="w-10 h-10 rounded-full bg-purple/10 text-purple flex items-center justify-center mr-3">
+                                <i class="fa-solid fa-trophy"></i>
+                            </div>
+                            ผลงานและโครงการเด่น
+                        </h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-gradient-to-br from-gray-50 to-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                                <div class="text-primary mb-2"><i class="fa-solid fa-file-contract text-2xl"></i></div>
+                                <h3 class="font-semibold text-sm text-gray-800 mb-1">มาตรฐานอาชีพและกรอบคุณวุฒิ</h3>
+                                <ul class="text-xs text-gray-600 list-disc pl-4 space-y-1">
+                                    <li>สายงานแอนิเมชัน</li>
+                                    <li>สายงาน e-Learning</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="bg-gradient-to-br from-gray-50 to-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                                <div class="text-blue mb-2"><i class="fa-solid fa-laptop-code text-2xl"></i></div>
+                                <h3 class="font-semibold text-sm text-gray-800 mb-1">พัฒนาระบบและสื่อการสอน</h3>
+                                <ul class="text-xs text-gray-600 list-disc pl-4 space-y-1">
+                                    <li>ระบบ e-Learning สนง.คณะกรรมการการอาชีวศึกษา</li>
+                                    <li>บทเรียน CAI บมจ.ปิโตรเคมีแห่งชาติ</li>
+                                    <li>บทเรียน CAI บมจ.เอ็กโก้</li>
+                                </ul>
+                            </div>
+
+                            <div class="bg-gradient-to-br from-gray-50 to-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow md:col-span-2">
+                                <div class="text-orangedark mb-2"><i class="fa-solid fa-book-open-reader text-2xl"></i></div>
+                                <h3 class="font-semibold text-sm text-gray-800 mb-1">การพัฒนาหลักสูตร</h3>
+                                <ul class="text-xs text-gray-600 list-disc pl-4 space-y-1">
+                                    <li>คณะกรรมการพัฒนาหลักสูตรคอมพิวเตอร์ศึกษา/เทคโนโลยีคอมพิวเตอร์ (ม.ราชภัฏ และ มทร.)</li>
+                                    <li>คณะกรรมการพัฒนาหลักสูตร ป.โท และ ป.เอก สาขาคอมพิวเตอร์ศึกษา</li>
+                                    <li>หลักสูตรปรับปรุง พ.ศ. 2570 ภาควิชาคอมพิวเตอร์ศึกษา ค.อ.อ. มจพ.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4. & 5. ผลงานวิชาการ / บทความวิจัย -->
+                <section id="academic" class="pt-20 lg:pt-0">
+                    <div class="card relative flex flex-col">
+                        <div id="loading-academic" class="section-loading"><div class="mini-spinner"></div></div>
+                        
+                        <div class="p-6 border-b border-gray-100">
+                            <h2 class="text-xl font-bold text-gray-800 flex items-center">
+                                <div class="w-10 h-10 rounded-full bg-redlight/10 text-redlight flex items-center justify-center mr-3">
+                                    <i class="fa-solid fa-book-journal-whills"></i>
+                                </div>
+                                ผลงานวิชาการและงานวิจัย
+                            </h2>
+                        </div>
+
+                        <!-- Tabs -->
+                        <div class="flex border-b border-gray-200">
+                            <button onclick="switchTab('journal')" id="tab-journal" class="flex-1 py-3 px-4 text-center font-medium text-sm text-primary border-b-2 border-primary bg-primary/5 transition-colors">
+                                วารสาร 5 ปี (2565-2569)
+                            </button>
+                            <button onclick="switchTab('article')" id="tab-article" class="flex-1 py-3 px-4 text-center font-medium text-sm text-gray-500 border-b-2 border-transparent hover:text-gray-700 hover:bg-gray-50 transition-colors">
+                                บทความวิจัย (2565-2569)
+                            </button>
+                        </div>
+
+                        <!-- Tab Content 1: Journals -->
+                        <div id="content-journal" class="p-6">
+                            <div class="overflow-x-auto rounded-lg border border-gray-200">
+                                <table class="min-w-full divide-y divide-gray-200 text-sm">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-700 w-12">#</th>
+                                            <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-700">ชื่องานวิจัย / ผู้แต่ง</th>
+                                            <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-700 w-32">ปี / แหล่งตีพิมพ์</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200">
+                                        <tr class="hover:bg-gray-50">
+                                            <td class="px-4 py-3 text-gray-500 align-top">1</td>
+                                            <td class="px-4 py-3 align-top">
+                                                <p class="font-medium text-gray-800 mb-1">การสังเคราะห์รูปแบบการเรียนรู้ด้วยกระบวนการคิดเชิงออกแบบบนสภาพแวดล้อมออนไลน์โดยใช้โครงงานเป็นฐานร่วมกับเครื่องมือ Generative AI สำหรับการออกแบบเพื่อความยั่งยืนในการพัฒนาผลิตภัณฑ์ชุมชน</p>
+                                                <p class="text-xs text-gray-500">รัตนา สุวรรณทิพย์, กฤช สินธนะกุล, จิรพันธุ์ ศรีสมพันธุ์</p>
+                                            </td>
+                                            <td class="px-4 py-3 text-xs text-gray-600 align-top">
+                                                <span class="inline-block bg-blue/10 text-blue px-2 py-0.5 rounded mb-1">2569</span><br>
+                                                วารสารบัณฑิตศึกษา มรภ.วไลยอลงกรณ์ฯ 20(1)
+                                            </td>
+                                        </tr>
+                                        <tr class="hover:bg-gray-50">
+                                            <td class="px-4 py-3 text-gray-500 align-top">2</td>
+                                            <td class="px-4 py-3 align-top">
+                                                <p class="font-medium text-gray-800 mb-1">Synthesize a project-based learning model empowered with Generative AI and integrated with a Gamification environment to enhance creative digital media production capabilities</p>
+                                                <p class="text-xs text-gray-500">Kerdtarwon, S., Srisomphan, J., & Sintanakul, K.</p>
+                                            </td>
+                                            <td class="px-4 py-3 text-xs text-gray-600 align-top">
+                                                <span class="inline-block bg-blue/10 text-blue px-2 py-0.5 rounded mb-1">2027</span><br>
+                                                Kasetsart Journal of Social Sciences
+                                            </td>
+                                        </tr>
+                                        <tr class="hover:bg-gray-50">
+                                            <td class="px-4 py-3 text-gray-500 align-top">3</td>
+                                            <td class="px-4 py-3 align-top">
+                                                <p class="font-medium text-gray-800 mb-1">การศึกษาผลการใช้รูปแบบการเรียนการสอนออนไลน์โดยใช้โครงงานเป็นฐานร่วมกับสเต็มศึกษา เพื่อส่งเสริมทักษะการคิดอย่างมีวิจารณญาณ</p>
+                                                <p class="text-xs text-gray-500">ปิยวรรณ รัตนภานุศร, สุธิดา ขัยชมชื่น, จิรพันธุ์ ศรีสมพันธุ์</p>
+                                            </td>
+                                            <td class="px-4 py-3 text-xs text-gray-600 align-top">
+                                                <span class="inline-block bg-blue/10 text-blue px-2 py-0.5 rounded mb-1">2569</span><br>
+                                                วารสารมนุษยศาสตร์และสังคมศาสตร์ ม.ธนบุรี 20(2)
+                                            </td>
+                                        </tr>
+                                        <tr class="hover:bg-gray-50">
+                                            <td class="px-4 py-3 text-gray-500 align-top">4</td>
+                                            <td class="px-4 py-3 align-top">
+                                                <p class="font-medium text-gray-800 mb-1">การพัฒนารูปแบบการเรียนรู้ฐานสมรรถนะ โดยใช้โครงงานเป็นฐานที่มีระบบช่วยเหลืออัตโนมัติ เพื่อเสริมศักยภาพในการปฏิบัติงานสำหรับนักศึกษาระดับปริญญาตรี</p>
+                                                <p class="text-xs text-gray-500">พงษ์ดนัย จิตตวิสุทธิกุล ธัญญรัตน์ น้อมพลกรัง และจิรพันธุ์ ศรีสมพันธุ์</p>
+                                            </td>
+                                            <td class="px-4 py-3 text-xs text-gray-600 align-top">
+                                                <span class="inline-block bg-teal/10 text-teal px-2 py-0.5 rounded mb-1">2568</span><br>
+                                                วารสารวิชาการบัณฑิตศึกษา มรภ.วไลยอลงกรณ์ฯ 19(1)
+                                            </td>
+                                        </tr>
+                                        <tr class="hover:bg-gray-50">
+                                            <td class="px-4 py-3 text-gray-500 align-top">5</td>
+                                            <td class="px-4 py-3 align-top">
+                                                <p class="font-medium text-gray-800 mb-1">การสังเคราะห์รูปแบบหลักสูตรการฝึกอบรมออนไลน์ร่วมกับรูปแบบชุมชนแห่งการเรียนรู้เพื่อส่งเสริมสมรรถนะการจัดการเรียนรู้รายวิชาวิทยาการคำนวณ สำหรับโรงเรียนขยายโอกาส</p>
+                                                <p class="text-xs text-gray-500">พรทิพย์ เกิดถาวร จิรพันธุ์ ศรีสมพันธุ์ และกฤช สินธนะกุล</p>
+                                            </td>
+                                            <td class="px-4 py-3 text-xs text-gray-600 align-top">
+                                                <span class="inline-block bg-lightgreen/20 text-green-700 px-2 py-0.5 rounded mb-1">2567</span><br>
+                                                วารสารบัณฑิตแสงโคมคำ 9(3)
+                                            </td>
+                                        </tr>
+                                        <tr class="hover:bg-gray-50">
+                                            <td class="px-4 py-3 text-gray-500 align-top">6</td>
+                                            <td class="px-4 py-3 align-top">
+                                                <p class="font-medium text-gray-800 mb-1">Synthesis of Problem-Based Interactive Digital Storytelling Learning Model Under Gamification Environment Promotes Students' Problem-Solving Skills</p>
+                                                <p class="text-xs text-gray-500">Poonsawad A., Srisomphan J. and Sanrach C.</p>
+                                            </td>
+                                            <td class="px-4 py-3 text-xs text-gray-600 align-top">
+                                                <span class="inline-block bg-gray-200 text-gray-700 px-2 py-0.5 rounded mb-1">2022</span><br>
+                                                iJET Vol. 17, No. 05
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Tab Content 2: Articles (Hidden by default) -->
+                        <div id="content-article" class="p-6 hidden">
+                            <div class="overflow-x-auto rounded-lg border border-gray-200">
+                                <table class="min-w-full divide-y divide-gray-200 text-sm">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-700 w-12">#</th>
+                                            <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-700">ชื่อบทความ / ผู้แต่ง</th>
+                                            <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-700 w-32">งานประชุมวิชาการ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200">
+                                        <tr class="hover:bg-gray-50">
+                                            <td class="px-4 py-3 text-gray-500 align-top">1</td>
+                                            <td class="px-4 py-3 align-top">
+                                                <p class="font-medium text-gray-800 mb-1">Developing a project-based learning platform empowered with generative AI and a gamification environment...</p>
+                                                <p class="text-xs text-gray-500">Kerdtarwon, S., Srisomphan, J., & Sintanakul, K.</p>
+                                            </td>
+                                            <td class="px-4 py-3 text-xs text-gray-600 align-top">
+                                                <span class="inline-block bg-blue/10 text-blue px-2 py-0.5 rounded mb-1">2026</span><br>
+                                                21st International & National Conference
+                                            </td>
+                                        </tr>
+                                        <tr class="hover:bg-gray-50">
+                                            <td class="px-4 py-3 text-gray-500 align-top">2</td>
+                                            <td class="px-4 py-3 align-top">
+                                                <p class="font-medium text-gray-800 mb-1">Development of a teaching plan verification system using artificial intelligence techniques</p>
+                                                <p class="text-xs text-gray-500">Narongchai S., Kanjanaporn K., Jiraphan S., Ukritwat P.</p>
+                                            </td>
+                                            <td class="px-4 py-3 text-xs text-gray-600 align-top">
+                                                <span class="inline-block bg-blue/10 text-blue px-2 py-0.5 rounded mb-1">2026</span><br>
+                                                16th International Conference on Technical Education KMUTNB
+                                            </td>
+                                        </tr>
+                                        <tr class="hover:bg-gray-50">
+                                            <td class="px-4 py-3 text-gray-500 align-top">3</td>
+                                            <td class="px-4 py-3 align-top">
+                                                <p class="font-medium text-gray-800 mb-1">ผลการจัดการเรียนรู้ตามรูปแบบ PjBLAI+ ภายใต้ระบบนิเวศทางปัญญาประดิษฐ์ เพื่อส่งเสริมผลงานสร้างสรรค์...</p>
+                                                <p class="text-xs text-gray-500">ศิริรัตน์ ทัศน, จิรพันธุ์ ศรีสมพันธุ์</p>
+                                            </td>
+                                            <td class="px-4 py-3 text-xs text-gray-600 align-top">
+                                                <span class="inline-block bg-blue/10 text-blue px-2 py-0.5 rounded mb-1">2569</span><br>
+                                                การประชุมวิชาการ ค.อ.อ. ระดับชาติ ครั้งที่ 18
+                                            </td>
+                                        </tr>
+                                        <tr class="hover:bg-gray-50">
+                                            <td class="px-4 py-3 text-gray-500 align-top">4</td>
+                                            <td class="px-4 py-3 align-top">
+                                                <p class="font-medium text-gray-800 mb-1">การพัฒนารูปแบบการเรียนรู้แบบปัญหาเป็นฐานร่วมกับเกมมิฟิเคชันด้วยโปรแกรม Scratch...</p>
+                                                <p class="text-xs text-gray-500">ขจรยศ เถาว์ทวี, จิรพันธุ์ ศรีสมพันธุ์</p>
+                                            </td>
+                                            <td class="px-4 py-3 text-xs text-gray-600 align-top">
+                                                <span class="inline-block bg-blue/10 text-blue px-2 py-0.5 rounded mb-1">2569</span><br>
+                                                การประชุมวิชาการ ค.อ.อ. ระดับชาติ ครั้งที่ 18
+                                            </td>
+                                        </tr>
+                                        <tr class="hover:bg-gray-50">
+                                            <td class="px-4 py-3 text-gray-500 align-top">5</td>
+                                            <td class="px-4 py-3 align-top">
+                                                <p class="font-medium text-gray-800 mb-1">การพัฒนาสื่อการเรียนรู้เชิงประสบการณ์ ตามกระบวนการเรียนรู้แบบ 5Es รายวิชาคอมพิวเตอร์และสารสนเทศ...</p>
+                                                <p class="text-xs text-gray-500">พิสิทธิ์ หนีกระโทก และจิรพันธุ์ ศรีสมพันธุ์</p>
+                                            </td>
+                                            <td class="px-4 py-3 text-xs text-gray-600 align-top">
+                                                <span class="inline-block bg-lightgreen/20 text-green-700 px-2 py-0.5 rounded mb-1">2567</span><br>
+                                                การประชุมวิชาการ ค.อ.อ. ระดับชาติ ครั้งที่ 16
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <div class="p-3 text-center bg-gray-50 border-t border-gray-200">
+                                    <span class="text-xs text-gray-500 italic">แสดงผลบางส่วนจากทั้งหมด 9 รายการ</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 6. งานวิทยากร -->
+                <section id="speaker" class="pt-20 lg:pt-0">
+                    <div class="card p-6 relative">
+                        <div id="loading-speaker" class="section-loading"><div class="mini-spinner"></div></div>
+                        <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center border-b border-gray-100 pb-3">
+                            <div class="w-10 h-10 rounded-full bg-orangelight/20 text-orangedark flex items-center justify-center mr-3">
+                                <i class="fa-solid fa-microphone-lines"></i>
+                            </div>
+                            ประสบการณ์งานวิทยากร
+                        </h2>
+
+                        <div class="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                            <!-- Timeline item -->
+                            <div class="flex">
+                                <div class="flex flex-col items-center mr-4">
+                                    <div class="w-3 h-3 bg-primary rounded-full mt-1.5"></div>
+                                    <div class="w-0.5 h-full bg-gray-200 my-1"></div>
+                                </div>
+                                <div class="pb-4">
+                                    <span class="text-xs font-bold text-primary mb-1 inline-block">พ.ศ. 2568</span>
+                                    <h3 class="text-sm font-semibold text-gray-800">วิทยากรการทำวิจัยในชั้นเรียน</h3>
+                                    <p class="text-xs text-gray-600 mt-1"><i class="fa-solid fa-location-dot mr-1"></i>วิทยาลัยเทคนิคสมุทรสาคร (8 พ.ค. 2568)</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex">
+                                <div class="flex flex-col items-center mr-4">
+                                    <div class="w-3 h-3 bg-teal rounded-full mt-1.5"></div>
+                                    <div class="w-0.5 h-full bg-gray-200 my-1"></div>
+                                </div>
+                                <div class="pb-4">
+                                    <span class="text-xs font-bold text-teal mb-1 inline-block">พ.ศ. 2568</span>
+                                    <h3 class="text-sm font-semibold text-gray-800">วิทยากรการอบรมเชิงปฏิบัติการการผลิตสื่อการสอนอย่างครูมืออาชีพ</h3>
+                                    <p class="text-xs text-gray-600 mt-1"><i class="fa-solid fa-location-dot mr-1"></i>มหาวิทยาลัยราชภัฏจันทรเกษม (14 มี.ค. 2568)</p>
+                                </div>
+                            </div>
+
+                            <div class="flex">
+                                <div class="flex flex-col items-center mr-4">
+                                    <div class="w-3 h-3 bg-teal rounded-full mt-1.5"></div>
+                                    <div class="w-0.5 h-full bg-gray-200 my-1"></div>
+                                </div>
+                                <div class="pb-4">
+                                    <span class="text-xs font-bold text-teal mb-1 inline-block">พ.ศ. 2568</span>
+                                    <h3 class="text-sm font-semibold text-gray-800">วิทยากรโครงการยกระดับการเรียนการสอนให้เข้าสู่การเรียนรู้สมัยใหม่</h3>
+                                    <p class="text-xs text-gray-600 mt-1"><i class="fa-solid fa-location-dot mr-1"></i>วิทยาลัยพยาบาลบรมราชชนนี สุรินทร์ (6 - 8 มี.ค. 2568)</p>
+                                </div>
+                            </div>
+
+                            <div class="flex">
+                                <div class="flex flex-col items-center mr-4">
+                                    <div class="w-3 h-3 bg-lightgreen rounded-full mt-1.5"></div>
+                                    <div class="w-0.5 h-full bg-gray-200 my-1"></div>
+                                </div>
+                                <div class="pb-4">
+                                    <span class="text-xs font-bold text-green-600 mb-1 inline-block">พ.ศ. 2567</span>
+                                    <h3 class="text-sm font-semibold text-gray-800">วิทยากร "อบรมโครงการยกระดับการเรียนรู้สมัยใหม่"</h3>
+                                    <p class="text-xs text-gray-600 mt-1"><i class="fa-solid fa-location-dot mr-1"></i>วิทยาลัยพยาบาล สุรินทร์ (18 - 21 มี.ค. 2567)</p>
+                                </div>
+                            </div>
+
+                            <div class="flex">
+                                <div class="flex flex-col items-center mr-4">
+                                    <div class="w-3 h-3 bg-gray-400 rounded-full mt-1.5"></div>
+                                    <div class="w-0.5 h-full bg-transparent my-1"></div> <!-- End of line -->
+                                </div>
+                                <div class="pb-1">
+                                    <span class="text-xs font-bold text-gray-600 mb-1 inline-block">พ.ศ. 2563 - 2566</span>
+                                    <h3 class="text-sm font-semibold text-gray-800">วิทยากรบรรยายกว่า 8 โครงการ</h3>
+                                    <p class="text-xs text-gray-500 mt-1">ครอบคลุมหัวข้อ e-Learning, Active Learning, การออกแบบสื่อ, การประเมินสมรรถนะ</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Training Attended -->
+                        <div class="mt-6 pt-4 border-t border-gray-100 bg-orange-50/50 p-3 rounded-lg">
+                            <h3 class="text-sm font-bold text-orangedark flex items-center mb-2">
+                                <i class="fa-solid fa-chalkboard-user mr-2"></i>การเข้าฝึกอบรมล่าสุด
+                            </h3>
+                            <p class="text-xs font-medium text-gray-800">โครงการจากใจครูสู่ใจศิษย์ "การตระเตรียมหัวใจของอาจารย์ที่ปรึกษาในการดูแลช่วยเหลือนักศึกษา"</p>
+                            <p class="text-xs text-gray-600 mt-1">21-22 พฤษภาคม 2568 | มจพ.</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <!-- 7. Dashboard รายงานผลงาน -->
+        <section id="dashboard" class="pt-20 lg:pt-24 w-full">
+            <div class="card p-6 lg:p-8 relative">
+                <div id="loading-dash" class="section-loading"><div class="mini-spinner"></div></div>
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center justify-center text-center">
+                    <i class="fa-solid fa-chart-pie text-teal mr-3"></i>
+                    Dashboard สรุปผลงานทางวิชาการ
+                </h2>
+                
+                <!-- Canvas Container -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                    <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-50">
+                        <h3 class="text-center text-sm font-semibold text-gray-600 mb-2">สถิติผลงานตีพิมพ์ (2565-2569)</h3>
+                        <div class="relative h-64 w-full">
+                            <!-- Canvas element requirement -->
+                            <canvas id="pubChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-50 flex flex-col justify-center">
+                        <h3 class="text-center text-sm font-semibold text-gray-600 mb-4">สัดส่วนภาระงาน (โดยประมาณ)</h3>
+                        <div class="space-y-4 px-4">
+                            <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span class="font-medium text-gray-700">งานสอนและการบริหารหลักสูตร</span>
+                                    <span class="text-primary font-bold">40%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-primary h-2 rounded-full" style="width: 40%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span class="font-medium text-gray-700">งานวิจัยและตีพิมพ์บทความ</span>
+                                    <span class="text-blue font-bold">35%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-blue h-2 rounded-full" style="width: 35%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span class="font-medium text-gray-700">บริการวิชาการ (วิทยากร/พัฒนาระบบ)</span>
+                                    <span class="text-orangedark font-bold">25%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-orangedark h-2 rounded-full" style="width: 25%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6 flex justify-around text-center">
+                            <div>
+                                <div class="text-2xl font-bold text-primary">6</div>
+                                <div class="text-xs text-gray-500">วารสารวิชาการ</div>
+                            </div>
+                            <div>
+                                <div class="text-2xl font-bold text-teal">9</div>
+                                <div class="text-xs text-gray-500">บทความวิจัย</div>
+                            </div>
+                            <div>
+                                <div class="text-2xl font-bold text-orangelight">10+</div>
+                                <div class="text-xs text-gray-500">งานวิทยากร</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer (Fluid width) -->
+    <footer class="w-full bg-gray-200 py-6 border-t border-gray-300 mt-10">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-sm text-gray-600 font-medium">
+                ระบบเว็บส่วนบุคคล พัฒนาโดย <span class="font-bold text-gray-800">นายจิรพันธุ์ ศรีสมพันธุ์</span>
+            </p>
+            <p class="text-xs text-gray-500 mt-1">&copy; 2026 Personal Portfolio Application. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Tab switching logic for Academic works
+        function switchTab(tabName) {
+            const tabJournal = document.getElementById('tab-journal');
+            const tabArticle = document.getElementById('tab-article');
+            const contentJournal = document.getElementById('content-journal');
+            const contentArticle = document.getElementById('content-article');
+
+            if (tabName === 'journal') {
+                // Update tabs
+                tabJournal.className = "flex-1 py-3 px-4 text-center font-medium text-sm text-primary border-b-2 border-primary bg-primary/5 transition-colors";
+                tabArticle.className = "flex-1 py-3 px-4 text-center font-medium text-sm text-gray-500 border-b-2 border-transparent hover:text-gray-700 hover:bg-gray-50 transition-colors";
+                // Update content
+                contentJournal.classList.remove('hidden');
+                contentArticle.classList.add('hidden');
+            } else {
+                // Update tabs
+                tabArticle.className = "flex-1 py-3 px-4 text-center font-medium text-sm text-primary border-b-2 border-primary bg-primary/5 transition-colors";
+                tabJournal.className = "flex-1 py-3 px-4 text-center font-medium text-sm text-gray-500 border-b-2 border-transparent hover:text-gray-700 hover:bg-gray-50 transition-colors";
+                // Update content
+                contentArticle.classList.remove('hidden');
+                contentJournal.classList.add('hidden');
+            }
+        }
+
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            if (menu.classList.contains('hidden')) {
+                menu.classList.remove('hidden');
+            } else {
+                menu.classList.add('hidden');
+            }
+        }
+
+        // Init Chart.js on the canvas
+        function initChart() {
+            const ctx = document.getElementById('pubChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['2565', '2566', '2567', '2568', '2569'],
+                    datasets: [
+                        {
+                            label: 'วารสาร',
+                            data: [1, 0, 1, 1, 3], // Based on CV data
+                            backgroundColor: '#3BB489',
+                            borderRadius: 4
+                        },
+                        {
+                            label: 'บทความวิจัย',
+                            data: [0, 1, 3, 0, 5], // Based on CV data
+                            backgroundColor: '#0288D1',
+                            borderRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { font: { family: 'Sarabun' } } }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                    }
+                }
+            });
+        }
+
+        // Manage Loading sequences and Splash screen
+        document.addEventListener("DOMContentLoaded", () => {
+            
+            // Remove splash screen after a minimum time or window load
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                splash.style.opacity = '0';
+                splash.style.visibility = 'hidden';
+                
+                // Start revealing sections
+                revealSections();
+                // Initialize Chart
+                initChart();
+            }, 1500); // 1.5 seconds splash screen
+
+            // Simulate section data loading
+            const loaders = ['loading-profile', 'loading-contact', 'loading-edu', 'loading-works', 'loading-academic', 'loading-speaker', 'loading-dash'];
+            loaders.forEach((loaderId, index) => {
+                setTimeout(() => {
+                    const loader = document.getElementById(loaderId);
+                    if(loader) {
+                        loader.style.opacity = '0';
+                        setTimeout(() => loader.style.display = 'none', 300);
+                    }
+                }, 1800 + (index * 200)); // Sequential fading of section loaders
+            });
+
+            // Smooth scroll for nav links (closes mobile menu if open)
+            document.querySelectorAll('nav a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    document.getElementById('mobile-menu').classList.add('hidden');
+                    const targetId = this.getAttribute('href');
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        window.scrollTo({
+                            top: targetElement.offsetTop - 80, // offset for fixed header
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+        });
+
+        // Intersection Observer for scroll animations
+        function revealSections() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            document.querySelectorAll('section').forEach(section => {
+                observer.observe(section);
+            });
+        }
+    </script>
+</body>
+</html>
